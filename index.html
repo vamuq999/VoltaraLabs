@@ -6,7 +6,7 @@
   <title>VoltaraLabs — Mint Portal</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <style>
-    :root { --bg:#0b0b0b; --fg:#00ffee; --muted:#0cd8bb; --card:#101214; }
+    :root { --bg:#0b0b0b; --fg:#00ffee; --muted:#0cd8bb; --card:#101214 }
     *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font-family:Arial,Helvetica,sans-serif}
     .wrap{max-width:960px;margin:0 auto;padding:32px;min-height:100vh;display:flex;flex-direction:column;gap:20px}
     .hero{display:grid;place-items:center;text-align:center;padding:40px 12px;border-radius:20px;background:linear-gradient(180deg,#0b0b0b 0%,#0f1115 100%)}
@@ -20,7 +20,7 @@
     button{background:var(--fg);color:#003330;border:none;padding:12px 18px;border-radius:12px;font-weight:700;cursor:pointer}
     button:hover{background:var(--muted)}
     .row{display:flex;gap:10px;align-items:center}
-    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12px;word-break:break-all}
+    .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all}
     .log{height:170px;overflow:auto;background:#080a0c;border:1px solid #123;border-radius:12px;padding:12px}
     .pill{padding:6px 10px;border-radius:999px;border:1px solid #164;display:inline-flex;gap:6px;align-items:center}
   </style>
@@ -29,7 +29,7 @@
   <div class="wrap">
     <div class="hero">
       <h1>⚡ VoltaraLabs — Mint Portal ⚡</h1>
-      <p>Connect wallet → set contract → mint. Keep it simple, keep it sovereign.</p>
+      <p>Connect wallet → mint to the registered minter. Keep it simple, keep it sovereign.</p>
       <div style="margin-top:16px" class="row">
         <button id="connectBtn">Connect Wallet</button>
         <span id="acct" class="pill" style="display:none"></span>
@@ -43,7 +43,7 @@
         <div style="display:grid;gap:12px">
           <div>
             <label>ERC-20/721 Minter Contract Address</label>
-            <input id="contract" placeholder="0xYourMinterContractAddress"/>
+            <input id="contract" value="0x0148244a5e22dc39f14f12855247caa8320d7fb8"/>
           </div>
 
           <div class="row">
@@ -52,23 +52,24 @@
               <input id="amount" type="number" min="1" value="1"/>
             </div>
             <div style="flex:1">
-              <label>ETH to Send (leave 0 if contract calculates price)</label>
-              <input id="ethValue" type="text" value="0" />
+              <label>ETH to Send (set your mint price per tx)</label>
+              <input id="ethValue" type="text" value="0.001" />
             </div>
           </div>
 
           <div>
             <label>Mint Function Type</label>
             <select id="fnType">
-              <option value="auto" selected>Auto-detect (try amount, then no-arg)</option>
-              <option value="withAmount">mint(uint256 amount) payable</option>
+              <option value="withAmount" selected>mint(uint256 amount) payable</option>
               <option value="noArg">mint() payable</option>
+              <option value="auto">Auto-detect (try amount, then no-arg)</option>
             </select>
           </div>
 
           <div class="row">
             <button id="mintBtn">Mint</button>
             <button id="checkBtn" style="background:#1de9b6">Check Readiness</button>
+            <button id="saveBtn" style="background:#14b8a6">Save Defaults</button>
           </div>
         </div>
       </div>
@@ -83,9 +84,9 @@
     <div class="card">
       <h3 style="margin-top:0">Notes</h3>
       <ul>
-        <li>Works with simple minters that expose <code>mint()</code> or <code>mint(uint256 amount)</code> and accept ETH.</li>
-        <li>Paste your **minter contract address**, choose the function shape, enter amount/ETH if needed, then press **Mint**.</li>
-        <li>If your contract lives on a specific chain (Base, Ethereum, etc.), switch networks in MetaMask first.</li>
+        <li>Pre-filled with your minter address: <code class="mono">0x0148244a5e22dc39f14f12855247caa8320d7fb8</code>.</li>
+        <li>Default function is <code>mint(uint256)</code>. If your contract is <code>mint()</code> without amount, select “mint() payable”.</li>
+        <li>Set the ETH value to your mint price; MetaMask will show the final gas + value.</li>
       </ul>
     </div>
   </div>
@@ -96,7 +97,26 @@
 
     let provider, signer;
 
-    function short(addr){ return addr ? addr.slice(0,6)+"…"+addr.slice(-4) : ""; }
+    // Persist your settings locally so they survive refresh
+    function loadDefaults(){
+      const d = JSON.parse(localStorage.getItem("mintDefaults")||"{}");
+      if(d.contract) $("#contract").value = d.contract;
+      if(d.amount) $("#amount").value = d.amount;
+      if(d.ethValue) $("#ethValue").value = d.ethValue;
+      if(d.fnType) $("#fnType").value = d.fnType;
+    }
+    function saveDefaults(){
+      const d = {
+        contract: $("#contract").value.trim(),
+        amount: $("#amount").value.trim(),
+        ethValue: $("#ethValue").value.trim(),
+        fnType: $("#fnType").value
+      };
+      localStorage.setItem("mintDefaults", JSON.stringify(d));
+      log("💾 Defaults saved locally.");
+    }
+
+    function short(a){ return a ? a.slice(0,6)+"…"+a.slice(-4) : ""; }
 
     async function ensureWallet() {
       if (!window.ethereum) { alert("No wallet found. Install MetaMask."); throw new Error("No wallet"); }
@@ -114,7 +134,6 @@
     }
 
     function getContract(address){
-      // Minimal ABIs for common minters
       const abi = [
         "function mint() payable",
         "function mint(uint256 amount) payable"
@@ -153,12 +172,11 @@
         } else if (fnType === "noArg") {
           tx = await contract.mint(overrides);
         } else {
-          // Auto-detect: try amount first, then fallback to no-arg
           try { tx = await contract.mint(ethers.BigNumber.from(amt), overrides); }
           catch { tx = await contract.mint(overrides); }
         }
 
-        log(⛓️  Submitted tx: "+tx.hash);
+        log("⛓️  Submitted tx: "+tx.hash);
         $("#lastTx").textContent = "Last tx: "+tx.hash;
         const receipt = await tx.wait();
         log("✅ Confirmed in block "+receipt.blockNumber);
@@ -172,6 +190,9 @@
     $("#connectBtn").onclick = ensureWallet;
     $("#checkBtn").onclick = check;
     $("#mintBtn").onclick = mint;
+    $("#saveBtn").onclick = saveDefaults;
+
+    loadDefaults();
   </script>
 </body>
 </html>
