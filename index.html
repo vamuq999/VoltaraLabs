@@ -1,50 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VoltaraLabs</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VoltaraLabs — Mint Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <style>
-    body {
-      background-color: #0a0a0a;
-      color: #00ffee;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      text-align: center;
-    }
-    h1 {
-      font-size: 48px;
-      margin-bottom: 10px;
-    }
-    p {
-      font-size: 18px;
-      opacity: 0.9;
-      max-width: 600px;
-    }
-    button {
-      margin-top: 24px;
-      background: #00ffee;
-      color: #0a0a0a;
-      border: none;
-      padding: 12px 28px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      background: #00ddbb;
-    }
+    :root { --bg:#0b0b0b; --fg:#00ffee; --muted:#0cd8bb; --card:#101214; }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font-family:Arial,Helvetica,sans-serif}
+    .wrap{max-width:960px;margin:0 auto;padding:32px;min-height:100vh;display:flex;flex-direction:column;gap:20px}
+    .hero{display:grid;place-items:center;text-align:center;padding:40px 12px;border-radius:20px;background:linear-gradient(180deg,#0b0b0b 0%,#0f1115 100%)}
+    h1{font-size:44px;margin:6px 0 4px} p{opacity:.85;margin:0}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:820px){.grid{grid-template-columns:1.2fr .8fr}}
+    .card{background:var(--card);border:1px solid #0f2b2b;border-radius:16px;padding:16px}
+    label{font-size:12px;opacity:.9}
+    input,select{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #133;outline:none;background:#0b0d10;color:var(--fg)}
+    input::placeholder{color:#73fff3aa}
+    button{background:var(--fg);color:#003330;border:none;padding:12px 18px;border-radius:12px;font-weight:700;cursor:pointer}
+    button:hover{background:var(--muted)}
+    .row{display:flex;gap:10px;align-items:center}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12px;word-break:break-all}
+    .log{height:170px;overflow:auto;background:#080a0c;border:1px solid #123;border-radius:12px;padding:12px}
+    .pill{padding:6px 10px;border-radius:999px;border:1px solid #164;display:inline-flex;gap:6px;align-items:center}
   </style>
 </head>
 <body>
-  <h1>⚡ VoltaraLabs ⚡</h1>
-  <p>Welcome to the Oracle Gateway — powered by Light, Love, and Code.</p>
-  <button onclick="alert('Mint Portal coming soon!')">Enter</button>
+  <div class="wrap">
+    <div class="hero">
+      <h1>⚡ VoltaraLabs — Mint Portal ⚡</h1>
+      <p>Connect wallet → set contract → mint. Keep it simple, keep it sovereign.</p>
+      <div style="margin-top:16px" class="row">
+        <button id="connectBtn">Connect Wallet</button>
+        <span id="acct" class="pill" style="display:none"></span>
+        <span id="net" class="pill" style="display:none"></span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3 style="margin-top:0">1) Contract & Mint Settings</h3>
+        <div style="display:grid;gap:12px">
+          <div>
+            <label>ERC-20/721 Minter Contract Address</label>
+            <input id="contract" placeholder="0xYourMinterContractAddress"/>
+          </div>
+
+          <div class="row">
+            <div style="flex:1">
+              <label>Mint Amount (for contracts that require it)</label>
+              <input id="amount" type="number" min="1" value="1"/>
+            </div>
+            <div style="flex:1">
+              <label>ETH to Send (leave 0 if contract calculates price)</label>
+              <input id="ethValue" type="text" value="0" />
+            </div>
+          </div>
+
+          <div>
+            <label>Mint Function Type</label>
+            <select id="fnType">
+              <option value="auto" selected>Auto-detect (try amount, then no-arg)</option>
+              <option value="withAmount">mint(uint256 amount) payable</option>
+              <option value="noArg">mint() payable</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <button id="mintBtn">Mint</button>
+            <button id="checkBtn" style="background:#1de9b6">Check Readiness</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0">Console</h3>
+        <div id="log" class="log mono"></div>
+        <div style="margin-top:8px" class="mono" id="lastTx"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Notes</h3>
+      <ul>
+        <li>Works with simple minters that expose <code>mint()</code> or <code>mint(uint256 amount)</code> and accept ETH.</li>
+        <li>Paste your **minter contract address**, choose the function shape, enter amount/ETH if needed, then press **Mint**.</li>
+        <li>If your contract lives on a specific chain (Base, Ethereum, etc.), switch networks in MetaMask first.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+    const log = (m)=>{ const el=$("#log"); el.innerHTML += m + "<br/>"; el.scrollTop=el.scrollHeight; };
+
+    let provider, signer;
+
+    function short(addr){ return addr ? addr.slice(0,6)+"…"+addr.slice(-4) : ""; }
+
+    async function ensureWallet() {
+      if (!window.ethereum) { alert("No wallet found. Install MetaMask."); throw new Error("No wallet"); }
+      if (!provider) provider = new ethers.providers.Web3Provider(window.ethereum);
+      if (!signer) {
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+      }
+      const addr = await signer.getAddress();
+      const network = await provider.getNetwork();
+      $("#acct").style.display="inline-flex"; $("#acct").textContent = "Acct: "+short(addr);
+      $("#net").style.display="inline-flex"; $("#net").textContent = "Chain: "+network.name+" ("+network.chainId+")";
+      log("✅ Wallet connected: "+addr);
+      return { addr, network };
+    }
+
+    function getContract(address){
+      // Minimal ABIs for common minters
+      const abi = [
+        "function mint() payable",
+        "function mint(uint256 amount) payable"
+      ];
+      return new ethers.Contract(address, abi, signer);
+    }
+
+    async function check(){
+      try{
+        await ensureWallet();
+        const addr = $("#contract").value.trim();
+        if(!addr) return alert("Enter a contract address first.");
+        const code = await provider.getCode(addr);
+        if(code === "0x") throw new Error("No contract at that address.");
+        log("✅ Contract code present at "+addr);
+      }catch(e){ log("❌ "+(e.data?.message || e.message)); }
+    }
+
+    async function mint(){
+      try{
+        await ensureWallet();
+        const caddr = $("#contract").value.trim();
+        if(!caddr) return alert("Enter a contract address.");
+        const contract = getContract(caddr);
+
+        const valueEth = ($("#ethValue").value || "0").trim();
+        const overrides = {};
+        if (valueEth && valueEth !== "0") overrides.value = ethers.utils.parseEther(valueEth);
+
+        const fnType = $("#fnType").value;
+        const amt = Math.max(1, parseInt($("#amount").value || "1",10));
+
+        let tx;
+        if (fnType === "withAmount") {
+          tx = await contract.mint(ethers.BigNumber.from(amt), overrides);
+        } else if (fnType === "noArg") {
+          tx = await contract.mint(overrides);
+        } else {
+          // Auto-detect: try amount first, then fallback to no-arg
+          try { tx = await contract.mint(ethers.BigNumber.from(amt), overrides); }
+          catch { tx = await contract.mint(overrides); }
+        }
+
+        log(⛓️  Submitted tx: "+tx.hash);
+        $("#lastTx").textContent = "Last tx: "+tx.hash;
+        const receipt = await tx.wait();
+        log("✅ Confirmed in block "+receipt.blockNumber);
+      }catch(e){
+        const msg = e.data?.message || e.message || String(e);
+        log("❌ "+msg);
+        if (msg.includes("user rejected")) log("ℹ️ You canceled the MetaMask prompt.");
+      }
+    }
+
+    $("#connectBtn").onclick = ensureWallet;
+    $("#checkBtn").onclick = check;
+    $("#mintBtn").onclick = mint;
+  </script>
 </body>
 </html>
