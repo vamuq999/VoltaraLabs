@@ -4,28 +4,115 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VoltaraLabs — Mint Portal</title>
+
+  <!-- Open Graph / Favicon basics -->
+  <meta name="theme-color" content="#00ffee">
+  <meta property="og:title" content="VoltaraLabs — Mint Portal">
+  <meta property="og:description" content="Connect wallet → mint to the registered minter. Keep it simple, keep it sovereign.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ccircle cx='64' cy='64' r='62' fill='%2300ffee'/%3E%3Ccircle cx='64' cy='64' r='52' fill='%230a0a0a'/%3E%3Cpath d='M64 30c22 0 38 22 38 34s-16 34-38 34S26 76 26 64s16-34 38-34Z' fill='none' stroke='%2300ffee' stroke-width='6'/%3E%3Ccircle cx='64' cy='64' r='10' fill='%2300ffee'/%3E%3C/svg%3E"/>
+
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+
   <style>
-    :root { --bg:#0b0b0b; --fg:#00ffee; --muted:#0cd8bb; --card:#101214 }
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font-family:Arial,Helvetica,sans-serif}
-    .wrap{max-width:960px;margin:0 auto;padding:32px;min-height:100vh;display:flex;flex-direction:column;gap:20px}
-    .hero{display:grid;place-items:center;text-align:center;padding:40px 12px;border-radius:20px;background:linear-gradient(180deg,#0b0b0b 0%,#0f1115 100%)}
+    :root {
+      --bg:#0b0b0b; --fg:#00ffee; --muted:#0cd8bb; --card:#101214;
+      --ring1:#00ffee22; --ring2:#14b8a633; --ring3:#6ee7d233;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--fg); font-family:Arial,Helvetica,sans-serif;
+      /* Cosmic gradient backdrop (animated) */
+      background: radial-gradient(1200px 800px at 10% 20%, #05363a, transparent 60%),
+                  radial-gradient(1000px 600px at 90% 10%, #0a3b2f, transparent 55%),
+                  radial-gradient(800px 1200px at 50% 100%, #041b24, transparent 60%),
+                  #07090b;
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+    @keyframes drift{
+      0%{background-position: 0px 0px, 0px 0px, 0px 0px;}
+      100%{background-position: -60px -30px, 30px -40px, 0px -60px;}
+    }
+
+    /* Watermark: Voltara Eye (SVG) */
+    .watermark{
+      position: fixed; inset: 0; pointer-events:none; z-index:0;
+      display:grid; place-items:center; opacity:0.08;
+      filter: blur(0.2px) drop-shadow(0 0 8px #00ffee33);
+    }
+    .watermark svg{ width: min(72vmin, 820px); height:auto }
+
+    .wrap{position:relative; z-index:1; max-width:960px; margin:0 auto; padding:32px;
+      min-height:100vh; display:flex; flex-direction:column; gap:20px}
+
+    .hero{
+      display:grid; place-items:center; text-align:center; padding:40px 12px;
+      border-radius:20px;
+      background:
+        radial-gradient(600px 220px at 50% 0%, #0c1418aa, transparent 70%),
+        linear-gradient(180deg,#0b0b0b 0%,#0f1115 100%);
+      border:1px solid #0f2b2b;
+      box-shadow: 0 0 0 1px #0c2a2a inset, 0 10px 40px #021a1a;
+    }
     h1{font-size:44px;margin:6px 0 4px} p{opacity:.85;margin:0}
+
     .grid{display:grid;grid-template-columns:1fr;gap:16px}
     @media(min-width:820px){.grid{grid-template-columns:1.2fr .8fr}}
-    .card{background:var(--card);border:1px solid #0f2b2b;border-radius:16px;padding:16px}
+
+    .card{
+      background:var(--card); border:1px solid #0f2b2b; border-radius:16px; padding:16px;
+      box-shadow: 0 0 0 1px #0b2222 inset, 0 4px 24px #041515;
+    }
     label{font-size:12px;opacity:.9}
-    input,select{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #133;outline:none;background:#0b0d10;color:var(--fg)}
+    input,select{
+      width:100%; padding:12px 14px; border-radius:10px; border:1px solid #133;
+      outline:none; background:#0b0d10; color:var(--fg);
+      box-shadow: 0 0 0 2px transparent inset; transition:.15s;
+    }
+    input:focus,select:focus{ box-shadow: 0 0 0 2px #0cd8bb55 inset; border-color:#1b4}
     input::placeholder{color:#73fff3aa}
-    button{background:var(--fg);color:#003330;border:none;padding:12px 18px;border-radius:12px;font-weight:700;cursor:pointer}
-    button:hover{background:var(--muted)}
+    button{
+      background:var(--fg); color:#003330; border:none; padding:12px 18px;
+      border-radius:12px; font-weight:700; cursor:pointer; transition:.15s;
+      box-shadow: 0 6px 18px #00ffee33;
+    }
+    button:hover{background:var(--muted); transform:translateY(-1px)}
     .row{display:flex;gap:10px;align-items:center}
     .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all}
     .log{height:170px;overflow:auto;background:#080a0c;border:1px solid #123;border-radius:12px;padding:12px}
-    .pill{padding:6px 10px;border-radius:999px;border:1px solid #164;display:inline-flex;gap:6px;align-items:center}
+    .pill{padding:6px 10px;border-radius:999px;border:1px solid #164;display:inline-flex;gap:6px;align-items:center;background:#062022aa}
+
+    /* Subtle orbital rings around screen edges */
+    .rings:before,.rings:after{
+      content:""; position:fixed; inset: -20% -20% auto auto; width:70vmax; height:70vmax;
+      border-radius:50%; border:2px solid var(--ring1); transform:translate(15%, -10%);
+      z-index:0;
+    }
+    .rings:after{
+      inset:auto auto -18% -18%; transform:translate(-10%, 15%);
+      border-color:var(--ring2); filter:blur(0.3px);
+    }
   </style>
 </head>
-<body>
+<body class="rings">
+  <!-- Watermark SVG -->
+  <div class="watermark" aria-hidden="true">
+    <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="g" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#00ffee"/>
+          <stop offset="60%" stop-color="#00ffee" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#00ffee" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="300" cy="300" r="240" fill="url(#g)"/>
+      <ellipse cx="300" cy="300" rx="220" ry="150" fill="none" stroke="#00ffee" stroke-opacity=".5" stroke-width="6"/>
+      <circle cx="300" cy="300" r="28" fill="#00ffee"/>
+      <path d="M300 135c110 0 190 110 190 165s-80 165-190 165S110 355 110 300 190 135 300 135Z"
+            fill="none" stroke="#00ffee" stroke-opacity=".35" stroke-width="8"/>
+    </svg>
+  </div>
+
   <div class="wrap">
     <div class="hero">
       <h1>⚡ VoltaraLabs — Mint Portal ⚡</h1>
@@ -86,7 +173,7 @@
       <ul>
         <li>Pre-filled with your minter address: <code class="mono">0x0148244a5e22dc39f14f12855247caa8320d7fb8</code>.</li>
         <li>Default function is <code>mint(uint256)</code>. If your contract is <code>mint()</code> without amount, select “mint() payable”.</li>
-        <li>Set the ETH value to your mint price; MetaMask will show the final gas + value.</li>
+        <li>ETH value is the per-tx price; adjust freely before minting.</li>
       </ul>
     </div>
   </div>
@@ -97,7 +184,6 @@
 
     let provider, signer;
 
-    // Persist your settings locally so they survive refresh
     function loadDefaults(){
       const d = JSON.parse(localStorage.getItem("mintDefaults")||"{}");
       if(d.contract) $("#contract").value = d.contract;
@@ -115,7 +201,6 @@
       localStorage.setItem("mintDefaults", JSON.stringify(d));
       log("💾 Defaults saved locally.");
     }
-
     function short(a){ return a ? a.slice(0,6)+"…"+a.slice(-4) : ""; }
 
     async function ensureWallet() {
@@ -191,7 +276,6 @@
     $("#checkBtn").onclick = check;
     $("#mintBtn").onclick = mint;
     $("#saveBtn").onclick = saveDefaults;
-
     loadDefaults();
   </script>
 </body>
