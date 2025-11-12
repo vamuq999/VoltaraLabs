@@ -1,315 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VoltaraLabs — Mint Portal</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltaraLabs — Mint Portal ⚡</title>
+  
   <!-- Open Graph / Favicon basics -->
-  <meta name="theme-color" content="#00ffee">
-  <meta property="og:title" content="VoltaraLabs — Mint Portal">
-  <meta property="og:description" content="Connect wallet → mint to the registered minter. Keep it simple, keep it sovereign.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ccircle cx='64' cy='64' r='62' fill='%2300ffee'/%3E%3Ccircle cx='64' cy='64' r='52' fill='%230a0a0a'/%3E%3Cpath d='M64 30c22 0 38 22 38 34s-16 34-38 34S26 76 26 64s16-34 38-34Z' fill='none' stroke='%2300ffee' stroke-width='6'/%3E%3Ccircle cx='64' cy='64' r='10' fill='%2300ffee'/%3E%3C/svg%3E"/>
+  <meta name="theme-color" content="#00ffee" />
+  <meta property="og:title" content="VoltaraLabs — Mint Portal" />
+  <meta property="og:description" content="Connect wallet → mint to the registered minter. Keep it simple, keep it sovereign." />
 
+  <!-- Voltara Eye favicon -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ccircle cx='64' cy='64' r='62' fill='%2300ffee'/%3E%3Ccircle cx='64' cy='64' r='10' fill='%2300a0a0'/%3E%3Cpath d='M64 30c22 0 38 22 38 34S86 98 64 98 26 82 26 64 42 30 64 30z' fill='none' stroke='%2300ffee' stroke-width='6'/%3E%3C/svg%3E" />
+
+  <!-- Ethers.js for minting -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-
-<!-- 🧿 Voltara Eye favicon -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-  %3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E
-    %3Ccircle cx='64' cy='64' r='62' fill='%2300ffee'/%3E
-    %3Ccircle cx='64' cy='64' r='52' fill='%23090b0b'/%3E
-    %3Cpath d='M64 30c22 0 38 22 38 34s-16 34-38 34S26 76 26 64s16-34 38-34Z'
-      fill='none' stroke='%2300ffee' stroke-width='6'/%3E
-    %3Ccircle cx='64' cy='64' r='10' fill='%2300ffee'/%3E
-  %3C/svg%3E"/>
 
   <style>
     :root {
-      --bg:#0b0b0b; --fg:#00ffee; --muted:#0cd8bb; --card:#101214;
-      --ring1:#00ffee22; --ring2:#14b8a633; --ring3:#6ee7d233;
+      --bg:#0b0b0b;
+      --fg:#00ffee;
+      --muted:#0cd8bb;
+      --card:#101214;
+      --ring1:#00ffee22;
+      --ring2:#14b8a633;
+      --ring3:#6ee7d233;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; color:var(--fg); font-family:Arial,Helvetica,sans-serif;
-      /* Cosmic gradient backdrop (animated) */
-      background: radial-gradient(1200px 800px at 10% 20%, #05363a, transparent 60%),
-                  radial-gradient(1000px 600px at 90% 10%, #0a3b2f, transparent 55%),
-                  radial-gradient(800px 1200px at 50% 100%, #041b24, transparent 60%),
-                  #07090b;
-      animation: drift 18s ease-in-out infinite alternate;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: var(--fg);
+      background: radial-gradient(circle at top, #001818, #000);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 0;
     }
-    @keyframes drift{
-      0%{background-position: 0px 0px, 0px 0px, 0px 0px;}
-      100%{background-position: -60px -30px, 30px -40px, 0px -60px;}
+    h1 {
+      font-size: 2.4rem;
+      letter-spacing: 0.6px;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 700px;
+      width: 90%;
+      box-shadow: 0 0 20px #00ffee20;
+      margin-bottom: 2rem;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid var(--fg);
+      border-radius: 6px;
+      background: #000;
+      color: var(--fg);
+    }
+    button {
+      background: var(--fg);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 22px;
+      margin: 8px 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px var(--fg);
+    }
+    .console {
+      background: #000;
+      color: #0f0;
+      font-family: monospace;
+      padding: 10px;
+      border-radius: 8px;
+      min-height: 80px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-size: 14px;
     }
 
-    /* Watermark: Voltara Eye (SVG) */
-    .watermark{
-      position: fixed; inset: 0; pointer-events:none; z-index:0;
-      display:grid; place-items:center; opacity:0.08;
-      filter: blur(0.2px) drop-shadow(0 0 8px #00ffee33);
+    footer {
+      position: relative;
+      text-align: center;
+      padding: 24px 8px 40px;
+      font-size: 13px;
+      color: #00ffeeaa;
+      letter-spacing: 0.5px;
+      z-index: 3;
+      font-family: Arial, sans-serif;
+      opacity: 0;
+      animation: fadeInFooter 2s ease-in forwards;
+      animation-delay: 1.5s;
     }
-    .watermark svg{ width: min(72vmin, 820px); height:auto }
-
-    .wrap{position:relative; z-index:1; max-width:960px; margin:0 auto; padding:32px;
-      min-height:100vh; display:flex; flex-direction:column; gap:20px}
-
-    .hero{
-      display:grid; place-items:center; text-align:center; padding:40px 12px;
-      border-radius:20px;
-      background:
-        radial-gradient(600px 220px at 50% 0%, #0c1418aa, transparent 70%),
-        linear-gradient(180deg,#0b0b0b 0%,#0f1115 100%);
-      border:1px solid #0f2b2b;
-      box-shadow: 0 0 0 1px #0c2a2a inset, 0 10px 40px #021a1a;
-    }
-    h1{font-size:44px;margin:6px 0 4px} p{opacity:.85;margin:0}
-
-    .grid{display:grid;grid-template-columns:1fr;gap:16px}
-    @media(min-width:820px){.grid{grid-template-columns:1.2fr .8fr}}
-
-    .card{
-      background:var(--card); border:1px solid #0f2b2b; border-radius:16px; padding:16px;
-      box-shadow: 0 0 0 1px #0b2222 inset, 0 4px 24px #041515;
-    }
-    label{font-size:12px;opacity:.9}
-    input,select{
-      width:100%; padding:12px 14px; border-radius:10px; border:1px solid #133;
-      outline:none; background:#0b0d10; color:var(--fg);
-      box-shadow: 0 0 0 2px transparent inset; transition:.15s;
-    }
-    input:focus,select:focus{ box-shadow: 0 0 0 2px #0cd8bb55 inset; border-color:#1b4}
-    input::placeholder{color:#73fff3aa}
-    button{
-      background:var(--fg); color:#003330; border:none; padding:12px 18px;
-      border-radius:12px; font-weight:700; cursor:pointer; transition:.15s;
-      box-shadow: 0 6px 18px #00ffee33;
-    }
-    button:hover{background:var(--muted); transform:translateY(-1px)}
-    .row{display:flex;gap:10px;align-items:center}
-    .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all}
-    .log{height:170px;overflow:auto;background:#080a0c;border:1px solid #123;border-radius:12px;padding:12px}
-    .pill{padding:6px 10px;border-radius:999px;border:1px solid #164;display:inline-flex;gap:6px;align-items:center;background:#062022aa}
-
-    /* Subtle orbital rings around screen edges */
-    .rings:before,.rings:after{
-      content:""; position:fixed; inset: -20% -20% auto auto; width:70vmax; height:70vmax;
-      border-radius:50%; border:2px solid var(--ring1); transform:translate(15%, -10%);
-      z-index:0;
-    }
-    .rings:after{
-      inset:auto auto -18% -18%; transform:translate(-10%, 15%);
-      border-color:var(--ring2); filter:blur(0.3px);
+    @keyframes fadeInFooter {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
-<body class="rings">
-  <!-- Watermark SVG -->
-  <div class="watermark" aria-hidden="true">
-    <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="g" cx="50%" cy="50%" r="60%">
-          <stop offset="0%" stop-color="#00ffee"/>
-          <stop offset="60%" stop-color="#00ffee" stop-opacity="0.35"/>
-          <stop offset="100%" stop-color="#00ffee" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <circle cx="300" cy="300" r="240" fill="url(#g)"/>
-      <ellipse cx="300" cy="300" rx="220" ry="150" fill="none" stroke="#00ffee" stroke-opacity=".5" stroke-width="6"/>
-      <circle cx="300" cy="300" r="28" fill="#00ffee"/>
-      <path d="M300 135c110 0 190 110 190 165s-80 165-190 165S110 355 110 300 190 135 300 135Z"
-            fill="none" stroke="#00ffee" stroke-opacity=".35" stroke-width="8"/>
-    </svg>
+<body>
+
+  <div class="hero">
+    <h1>⚡ VoltaraLabs — Mint Portal ⚡</h1>
+    <p>Connect wallet → mint to the registered minter. Keep it simple, keep it sovereign.</p>
+    <button onclick="connectWallet()">Connect Wallet</button>
   </div>
 
-  <div class="wrap">
-    <div class="hero">
-      <h1>⚡ VoltaraLabs — Mint Portal ⚡</h1>
-      <p>Connect wallet → mint to the registered minter. Keep it simple, keep it sovereign.</p>
-      <div style="margin-top:16px" class="row">
-        <button id="connectBtn">Connect Wallet</button>
-        <span id="acct" class="pill" style="display:none"></span>
-        <span id="net" class="pill" style="display:none"></span>
-      </div>
-    </div>
+  <div class="card">
+    <h3>1) Contract & Mint Settings</h3>
+    <label>ERC-20/721 Minter Contract Address</label>
+    <input id="contractAddress" placeholder="0xYourMinterContractAddress" />
 
-    <div class="grid">
-      <div class="card">
-        <h3 style="margin-top:0">1) Contract & Mint Settings</h3>
-        <div style="display:grid;gap:12px">
-          <div>
-            <label>ERC-20/721 Minter Contract Address</label>
-            <input id="contract" value="0x0148244a5e22dc39f14f12855247caa8320d7fb8"/>
-          </div>
+    <label>Mint Amount (for contracts that require it)</label>
+    <input id="mintAmount" value="1" />
 
-          <div class="row">
-            <div style="flex:1">
-              <label>Mint Amount (for contracts that require it)</label>
-              <input id="amount" type="number" min="1" value="1"/>
-            </div>
-            <div style="flex:1">
-              <label>ETH to Send (set your mint price per tx)</label>
-              <input id="ethValue" type="text" value="0.001" />
-            </div>
-          </div>
+    <label>ETH to Send (set your mint price per tx)</label>
+    <input id="ethToSend" value="0.001" />
 
-          <div>
-            <label>Mint Function Type</label>
-            <select id="fnType">
-              <option value="withAmount" selected>mint(uint256 amount) payable</option>
-              <option value="noArg">mint() payable</option>
-              <option value="auto">Auto-detect (try amount, then no-arg)</option>
-            </select>
-          </div>
+    <label>Mint Function Type</label>
+    <select id="mintFunction">
+      <option>mint(uint256 amount) payable</option>
+      <option>safeMint(address to)</option>
+      <option>mint()</option>
+    </select>
 
-          <div class="row">
-            <button id="mintBtn">Mint</button>
-            <button id="checkBtn" style="background:#1de9b6">Check Readiness</button>
-            <button id="saveBtn" style="background:#14b8a6">Save Defaults</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3 style="margin-top:0">Console</h3>
-        <div id="log" class="log mono"></div>
-        <div style="margin-top:8px" class="mono" id="lastTx"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 style="margin-top:0">Notes</h3>
-      <ul>
-        <li>Pre-filled with your minter address: <code class="mono">0x0148244a5e22dc39f14f12855247caa8320d7fb8</code>.</li>
-        <li>Default function is <code>mint(uint256)</code>. If your contract is <code>mint()</code> without amount, select “mint() payable”.</li>
-        <li>ETH value is the per-tx price; adjust freely before minting.</li>
-      </ul>
-    </div>
+    <button onclick="mint()">Mint</button>
+    <button onclick="checkReadiness()">Check Readiness</button>
   </div>
+
+  <div class="card console" id="console">Console output will appear here...</div>
+
+  <footer>
+    © 2025 <b>VoltaraLabs</b> — Powered by Light, Love & Code.
+  </footer>
 
   <script>
-    const $ = (s)=>document.querySelector(s);
-    const log = (m)=>{ const el=$("#log"); el.innerHTML += m + "<br/>"; el.scrollTop=el.scrollHeight; };
+    let provider, signer, contract;
+    const consoleBox = document.getElementById("console");
 
-    let provider, signer;
-
-    function loadDefaults(){
-      const d = JSON.parse(localStorage.getItem("mintDefaults")||"{}");
-      if(d.contract) $("#contract").value = d.contract;
-      if(d.amount) $("#amount").value = d.amount;
-      if(d.ethValue) $("#ethValue").value = d.ethValue;
-      if(d.fnType) $("#fnType").value = d.fnType;
-    }
-    function saveDefaults(){
-      const d = {
-        contract: $("#contract").value.trim(),
-        amount: $("#amount").value.trim(),
-        ethValue: $("#ethValue").value.trim(),
-        fnType: $("#fnType").value
-      };
-      localStorage.setItem("mintDefaults", JSON.stringify(d));
-      log("💾 Defaults saved locally.");
-    }
-    function short(a){ return a ? a.slice(0,6)+"…"+a.slice(-4) : ""; }
-
-    async function ensureWallet() {
-      if (!window.ethereum) { alert("No wallet found. Install MetaMask."); throw new Error("No wallet"); }
-      if (!provider) provider = new ethers.providers.Web3Provider(window.ethereum);
-      if (!signer) {
+    async function connectWallet() {
+      if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
+        const address = await signer.getAddress();
+        log("✅ Connected wallet: " + address);
+      } else {
+        log("⚠️ No wallet detected. Install MetaMask.");
       }
-      const addr = await signer.getAddress();
-      const network = await provider.getNetwork();
-      $("#acct").style.display="inline-flex"; $("#acct").textContent = "Acct: "+short(addr);
-      $("#net").style.display="inline-flex"; $("#net").textContent = "Chain: "+network.name+" ("+network.chainId+")";
-      log("✅ Wallet connected: "+addr);
-      return { addr, network };
     }
 
-    function getContract(address){
-      const abi = [
-        "function mint() payable",
-        "function mint(uint256 amount) payable"
-      ];
-      return new ethers.Contract(address, abi, signer);
+    async function checkReadiness() {
+      const contractAddress = document.getElementById("contractAddress").value;
+      if (!ethers.utils.isAddress(contractAddress)) {
+        log("❌ Invalid contract address.");
+        return;
+      }
+      log("✅ Contract address format looks valid.");
     }
 
-    async function check(){
-      try{
-        await ensureWallet();
-        const addr = $("#contract").value.trim();
-        if(!addr) return alert("Enter a contract address first.");
-        const code = await provider.getCode(addr);
-        if(code === "0x") throw new Error("No contract at that address.");
-        log("✅ Contract code present at "+addr);
-      }catch(e){ log("❌ "+(e.data?.message || e.message)); }
-    }
+    async function mint() {
+      try {
+        const addr = document.getElementById("contractAddress").value;
+        const ethToSend = document.getElementById("ethToSend").value;
+        const mintAmount = document.getElementById("mintAmount").value;
+        const func = document.getElementById("mintFunction").value;
 
-    async function mint(){
-      try{
-        await ensureWallet();
-        const caddr = $("#contract").value.trim();
-        if(!caddr) return alert("Enter a contract address.");
-        const contract = getContract(caddr);
+        if (!signer) { log("⚠️ Please connect your wallet first."); return; }
 
-        const valueEth = ($("#ethValue").value || "0").trim();
-        const overrides = {};
-        if (valueEth && valueEth !== "0") overrides.value = ethers.utils.parseEther(valueEth);
+        const abi = [
+          "function mint(uint256 amount) payable",
+          "function safeMint(address to)",
+          "function mint() payable"
+        ];
+        contract = new ethers.Contract(addr, abi, signer);
 
-        const fnType = $("#fnType").value;
-        const amt = Math.max(1, parseInt($("#amount").value || "1",10));
-
-        let tx;
-        if (fnType === "withAmount") {
-          tx = await contract.mint(ethers.BigNumber.from(amt), overrides);
-        } else if (fnType === "noArg") {
-          tx = await contract.mint(overrides);
-        } else {
-          try { tx = await contract.mint(ethers.BigNumber.from(amt), overrides); }
-          catch { tx = await contract.mint(overrides); }
-        }
-
-        log("⛓️  Submitted tx: "+tx.hash);
-        $("#lastTx").textContent = "Last tx: "+tx.hash;
+        log("⛏️ Minting...");
+        const tx = await contract.mint(mintAmount, { value: ethers.utils.parseEther(ethToSend) });
+        log("⏳ Transaction sent: " + tx.hash);
         const receipt = await tx.wait();
-        log("✅ Confirmed in block "+receipt.blockNumber);
-      }catch(e){
-        const msg = e.data?.message || e.message || String(e);
-        log("❌ "+msg);
-        if (msg.includes("user rejected")) log("ℹ️ You canceled the MetaMask prompt.");
+        log("✅ Minted successfully in block " + receipt.blockNumber);
+      } catch (err) {
+        log("❌ Error: " + err.message);
       }
     }
 
-    $("#connectBtn").onclick = ensureWallet;
-    $("#checkBtn").onclick = check;
-    $("#mintBtn").onclick = mint;
-    $("#saveBtn").onclick = saveDefaults;
-    loadDefaults();
+    function log(msg) {
+      consoleBox.innerText += msg + "\\n";
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
   </script>
-<footer style="
-  position:relative;
-  text-align:center;
-  padding:24px 8px 40px;
-  font-size:13px;
-  color:#00ffeeaa;
-  letter-spacing:0.5px;
-  z-index:3;
-  font-family: 'Arial', sans-serif;
-  opacity: 0;
-  animation: fadeInFooter 2s ease-in forwards;
-  animation-delay: 1.5s;
-">
-  © 2025 <b>VoltaraLabs</b> — Powered by Light, Love & Code.
-</footer>
-
-<style>
-@keyframes fadeInFooter {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>
 
 </body>
 </html>
