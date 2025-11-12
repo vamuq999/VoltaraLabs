@@ -1,20 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VoltaraLabs</title>
   <style>
-    body { background:#0a0a0a; color:#00ffee; font-family: Arial, sans-serif;
-           display:grid; place-items:center; min-height:100vh; margin:0; text-align:center; }
-    h1 { font-size:48px; margin:0 0 10px; }
-    p  { font-size:18px; opacity:0.9; }
-    .wrap { max-width:680px; padding:24px; }
+    body {
+      background-color: #0a0a0a;
+      color: #00ffee;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 18px;
+      opacity: 0.9;
+      max-width: 600px;
+    }
+    button {
+      margin-top: 24px;
+      background: #00ffee;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 28px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #00ddbb;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>⚡ VoltaraLabs ⚡</h1>
-    <p>Welcome to the Oracle Gateway — powered by Light, Love, and Code.</p>
-  </div>
+  <h1>⚡ VoltaraLabs ⚡</h1>
+  <p>Welcome to the Oracle Gateway — powered by Light, Love, and Code.</p>
+  <button onclick="alert('Mint Portal coming soon!')">Enter</button>
 </body>
 </html>
